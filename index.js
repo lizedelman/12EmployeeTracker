@@ -1,15 +1,9 @@
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-const express = require("express");
-const PORT = process.env.PORT || 3001;
 const cTable = require("console.table");
-const app = express();
+require(`dotenv`).config();
 
-// Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
-const db = mysql.createConnection(
+const connection = mysql.createConnection(
   {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -19,105 +13,72 @@ const db = mysql.createConnection(
   console.log(`Connected to the employees_db database.`)
 );
 
-// Query database
-db.query("SELECT * FROM employees", function (err, results) {
-  console.log(results);
-});
-
-// Default response for any other request (Not Found)
-app.use((req, res) => {
-  res.status(404).end();
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+connection.connect(function (err) {
+  if (err) throw err;
+  start();
 });
 
 function start() {
   inquirer
-    .prompt({
-      type: "list",
-      message: "Welcome to Employee Tracker. What would you like to do?",
-      name: "choices",
-      choices: [
-        {
-          name: "View all employees",
-          value: "viewEmployees",
-        },
-        {
-          name: "View all departments",
-          value: "viewDepartments",
-        },
-        {
-          name: "View all roles",
-          value: "viewRoles",
-        },
-        {
-          name: "Add employee",
-          value: "addEmployee",
-        },
-        {
-          name: "Add department",
-          value: "addDept",
-        },
-        {
-          name: "Add role",
-          value: "addRole",
-        },
-        {
-          name: "Update role",
-          value: "updateRole",
-        },
-        {
-          name: "Quit",
-          value: "quit",
-        },
-      ],
+    .prompt([
+      {
+        type: "list",
+        name: "userChoice",
+        message: "What would you like to do?",
+        choices: [
+          "View all Departments",
+          "View all Roles",
+          "View all Employees",
+          "Add a Department",
+          "Add a Role",
+          "Add an Employee",
+          "Update an Employee Role",
+          "Exit",
+        ],
+      },
+    ])
+    .then((res) => {
+      console.log(res.userChoice);
+      switch (res.userChoice) {
+        case "View all Departments":
+          viewAllDepartments();
+          break;
+        case "View all Roles":
+          viewAllRoles();
+          break;
+        case "View all Employees":
+          viewAllEmployees();
+          break;
+        case "Add a Department":
+          addDepartment();
+          break;
+        case "Add a Role":
+          addRole();
+          break;
+        case "Add an Employee":
+          addEmployee();
+          break;
+        case "Update an Employee Role":
+          updateEmployeeRole();
+          break;
+        case "Exit":
+          connection.end();
+          break;
+        default:
+          console.log("Error has occurred");
+          connection.end();
+          break;
+      }
     })
-    .then(function (res) {
-      // console.log(res);
-      menu(res.choices);
+    .catch((err) => {
+      if (err) throw err;
     });
 }
-
-function menu(option) {
-  switch (option) {
-    case "viewEmployees":
-      viewAllEmployees();
-      break;
-    case "viewDepartments":
-      viewAllDepartments();
-      break;
-    case "viewRoles":
-      viewAllRoles();
-      break;
-    case "addEmployee":
-      addEmployee();
-      break;
-    case "addDept":
-      addDept();
-      break;
-    case "addRole":
-      addRole();
-      break;
-    case "updateRole":
-      updateRole();
-      break;
-    case "quit":
-      end();
-  }
+function viewAllDepartments() {
+  let query = "SELECT * FROM department";
+  connection.query(query, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    start();
+  });
 }
-
-function viewAllEmployees() {
-  connection.query(
-    "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;",
-    function (err, res) {
-      if (err) throw err;
-
-      console.table(res);
-      start();
-    }
-  );
-}
-
-start();
