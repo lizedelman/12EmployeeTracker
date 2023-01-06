@@ -1,6 +1,6 @@
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-const cTable = require("console.table");
+require("console.table");
 require(`dotenv`).config();
 
 const connection = mysql.createConnection(
@@ -23,23 +23,23 @@ function start() {
     .prompt([
       {
         type: "list",
-        name: "userChoice",
+        name: "menu",
         message: "What would you like to do?",
         choices: [
           "View all Departments",
           "View all Roles",
           "View all Employees",
-          "Add a Department",
-          "Add a Role",
-          "Add an Employee",
-          "Update an Employee Role",
+          "Add Department",
+          "Add Role",
+          "Add Employee",
+          "Update Employee Role",
           "Exit",
         ],
       },
     ])
     .then((res) => {
-      console.log(res.userChoice);
-      switch (res.userChoice) {
+      console.log(res.menu);
+      switch (res.menu) {
         case "View all Departments":
           viewAllDepartments();
           break;
@@ -49,16 +49,16 @@ function start() {
         case "View all Employees":
           viewAllEmployees();
           break;
-        case "Add a Department":
+        case "Add Department":
           addDepartment();
           break;
-        case "Add a Role":
+        case "Add Role":
           addRole();
           break;
-        case "Add an Employee":
+        case "Add Employee":
           addEmployee();
           break;
-        case "Update an Employee Role":
+        case "Update Employee Role":
           updateEmployeeRole();
           break;
         case "Exit":
@@ -75,6 +75,23 @@ function start() {
     });
 }
 function viewAllDepartments() {
+  let query = "SELECT * FROM department";
+  connection.query(query, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    start();
+  });
+}
+
+function viewAllEmployees() {
+  let query = "SELECT * FROM department";
+  connection.query(query, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    start();
+  });
+}
+function viewAllRoles() {
   let query = "SELECT * FROM department";
   connection.query(query, function (err, res) {
     if (err) throw err;
